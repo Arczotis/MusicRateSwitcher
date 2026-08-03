@@ -1,14 +1,41 @@
-# MusicRateSwitcher
+<p align="center">
+  <img src="docs/assets/hero.jpg" alt="MusicRateSwitcher — automatic sample-rate matching for macOS" width="100%">
+</p>
 
-[简体中文](README.md) | **English**
+<h1 align="center">MusicRateSwitcher</h1>
 
-[GitHub: Arczotis/MusicRateSwitcher](https://github.com/Arczotis/MusicRateSwitcher) · Author: Arczotis · Contact: 841530503@qq.com
+<p align="center">
+  <strong>Keep the source sample rate and your macOS output device in sync—automatically.</strong>
+</p>
 
-MusicRateSwitcher is a standalone macOS menu bar utility that detects the source sample rate currently used by Apple Music, NetEase Cloud Music, QQ Music, and Soda Music, then switches the selected audio output device to a matching rate. This reduces unnecessary resampling caused by a fixed macOS output format.
+<p align="center">
+  A native menu bar utility for Apple Music, NetEase Cloud Music, QQ Music, and Soda Music.
+</p>
 
-This is an independent implementation and contains no LosslessSwitcher source code. It is released under the MIT License and uses a pluggable player-source architecture so more music players can be added later.
+<p align="center">
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/v/release/Arczotis/MusicRateSwitcher?display_name=tag&style=flat-square&color=1677ff" alt="Latest release"></a>
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/downloads/Arczotis/MusicRateSwitcher/total?style=flat-square&color=00b8d9" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-111827?style=flat-square&logo=apple" alt="macOS 13+">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Arczotis/MusicRateSwitcher?style=flat-square" alt="MIT License"></a>
+</p>
 
-If MusicRateSwitcher is useful to you, please consider giving the repository a Star.
+<p align="center">
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases/latest"><strong>Download the latest release</strong></a>
+  ·
+  <a href="https://github.com/Arczotis/MusicRateSwitcher">Star the project ⭐️</a>
+  ·
+  <a href="mailto:841530503@qq.com">Contact Arczotis</a>
+</p>
+
+<p align="center">
+  <a href="README.md">简体中文</a> · <strong>English</strong>
+</p>
+
+---
+
+MusicRateSwitcher detects the source sample rate of the currently playing track and switches the selected output device to a matching format. This reduces unnecessary resampling caused by a fixed macOS output rate.
+
+This is an independent implementation and contains no LosslessSwitcher source code. It uses a pluggable player-source architecture so more music players can be added later.
 
 ## Features
 
@@ -24,6 +51,27 @@ If MusicRateSwitcher is useful to you, please consider giving the repository a S
 - Watches for default-device changes and USB audio hot-plug events.
 - Supports launch at login, a menu bar sample-rate display, manual refresh, diagnostics, and logs.
 - Does not capture audio or save, copy, or export songs.
+
+## Interface
+
+<p align="center">
+  <img src="docs/assets/menu.png" alt="MusicRateSwitcher menu bar interface" width="390">
+</p>
+
+<p align="center"><sub>Player status, source format, target output, and common tools in one compact menu.</sub></p>
+
+## How It Works
+
+```mermaid
+flowchart LR
+    A["Apple Music"] --> E["Format detection"]
+    B["NetEase Cloud Music"] --> E
+    C["QQ Music"] --> E
+    D["Soda Music"] --> E
+    E --> F["Active-player arbitration"]
+    F --> G["Core Audio device matching"]
+    G --> H["DAC / headphones / speakers"]
+```
 
 ## Installation and Use
 

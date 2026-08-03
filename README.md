@@ -1,14 +1,41 @@
-# MusicRateSwitcher
+<p align="center">
+  <img src="docs/assets/hero.jpg" alt="MusicRateSwitcher — automatic sample-rate matching for macOS" width="100%">
+</p>
 
-**简体中文** | [English](README_EN.md)
+<h1 align="center">MusicRateSwitcher</h1>
 
-[GitHub：Arczotis/MusicRateSwitcher](https://github.com/Arczotis/MusicRateSwitcher) · 作者：Arczotis · 联系邮箱：841530503@qq.com
+<p align="center">
+  <strong>让播放器源采样率与 macOS 输出设备自动保持一致</strong>
+</p>
 
-一个独立的 macOS 菜单栏工具：自动识别 Apple Music、网易云音乐、QQ 音乐与汽水音乐当前播放内容的源采样率，并把选定输出设备切换到匹配的采样率，减少 macOS 固定输出格式造成的不必要重采样。
+<p align="center">
+  支持 Apple Music、网易云音乐、QQ 音乐与汽水音乐的原生菜单栏工具。
+</p>
 
-项目为独立实现，不包含 LosslessSwitcher 源码，使用 MIT License。播放器检测采用可插拔数据源架构，方便继续加入其他播放器。
+<p align="center">
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/v/release/Arczotis/MusicRateSwitcher?display_name=tag&style=flat-square&color=1677ff" alt="Latest release"></a>
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/downloads/Arczotis/MusicRateSwitcher/total?style=flat-square&color=00b8d9" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-111827?style=flat-square&logo=apple" alt="macOS 13+">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Arczotis/MusicRateSwitcher?style=flat-square" alt="MIT License"></a>
+</p>
 
-如果这个项目对你有帮助，欢迎在 GitHub 仓库点一个 Star。
+<p align="center">
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases/latest"><strong>下载最新版本</strong></a>
+  ·
+  <a href="https://github.com/Arczotis/MusicRateSwitcher">给项目一个 Star ⭐️</a>
+  ·
+  <a href="mailto:841530503@qq.com">联系 Arczotis</a>
+</p>
+
+<p align="center">
+  <strong>简体中文</strong> · <a href="README_EN.md">English</a>
+</p>
+
+---
+
+MusicRateSwitcher 会自动识别当前播放内容的源采样率，并把选定输出设备切换到匹配的格式，减少 macOS 固定输出采样率造成的不必要重采样。
+
+项目为独立实现，不包含 LosslessSwitcher 源码。播放器检测采用可插拔数据源架构，方便继续加入其他播放器。
 
 ## 功能
 
@@ -24,6 +51,27 @@
 - 监听默认设备切换和 USB 音频设备热插拔。
 - 支持登录时启动、菜单栏采样率、手动刷新、诊断摘要和日志。
 - 不捕获音频，也不保存、复制或导出歌曲。
+
+## 界面预览
+
+<p align="center">
+  <img src="docs/assets/menu.png" alt="MusicRateSwitcher 菜单栏界面" width="390">
+</p>
+
+<p align="center"><sub>播放器状态、源格式、目标输出设备与常用工具都集中在一个菜单中。</sub></p>
+
+## 工作方式
+
+```mermaid
+flowchart LR
+    A["Apple Music"] --> E["采样率检测"]
+    B["网易云音乐"] --> E
+    C["QQ 音乐"] --> E
+    D["汽水音乐"] --> E
+    E --> F["活跃播放器仲裁"]
+    F --> G["Core Audio 设备匹配"]
+    G --> H["DAC / 耳机 / 扬声器"]
+```
 
 ## 使用
 
