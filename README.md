@@ -1,5 +1,7 @@
 # MusicRateSwitcher
 
+**简体中文** | [English](README_EN.md)
+
 [GitHub：Arczotis/MusicRateSwitcher](https://github.com/Arczotis/MusicRateSwitcher) · 作者：Arczotis · 联系邮箱：841530503@qq.com
 
 一个独立的 macOS 菜单栏工具：自动识别 Apple Music、网易云音乐、QQ 音乐与汽水音乐当前播放内容的源采样率，并把选定输出设备切换到匹配的采样率，减少 macOS 固定输出格式造成的不必要重采样。
@@ -25,11 +27,12 @@
 
 ## 使用
 
-1. 双击 `dist/MusicRateSwitcher.app`。
-2. 如果 macOS 阻止首次打开，按住 Control 点击 App，选择“打开”。
-3. 在任一受支持的播放器中开始播放。
-4. 菜单栏会显示例如 `♫ 96 kHz`，输出设备会自动匹配。
-5. 菜单中的“播放器”可以单独开关数据源；“目标输出设备”可以选择系统默认设备或固定 DAC。
+1. 从 [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases) 下载最新版本并解压。
+2. 双击 `MusicRateSwitcher.app`。
+3. 如果 macOS 阻止首次打开，按住 Control 点击 App，选择“打开”。
+4. 在任一受支持的播放器中开始播放。
+5. 菜单栏会显示例如 `♫ 96 kHz`，输出设备会自动匹配。
+6. 菜单中的“播放器”可以单独开关数据源；输出设备行可以选择系统默认设备或固定 DAC。
 
 首次读取网易云音乐容器时，macOS 可能询问是否允许访问其他 App 的数据。需要选择允许，否则无法读取缓存格式。
 
