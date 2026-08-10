@@ -1,3 +1,5 @@
+
+
 <p align="center">
   <img src="docs/assets/hero.jpg" alt="MusicRateSwitcher — automatic sample-rate matching for macOS" width="100%">
 </p>
@@ -164,3 +166,5 @@ macOS 14.2 及以上使用公开的 Core Audio Process Object API 检查活跃�
 ```text
 ~/Library/Logs/MusicRateSwitcher/MusicRateSwitcher.log
 ```
+
+（日志目录与文件将在首次运行时自动创建，日志文件体积超过 2 MB 时会触发自动轮换归档。）
