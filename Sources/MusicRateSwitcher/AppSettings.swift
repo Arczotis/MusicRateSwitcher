@@ -1,6 +1,22 @@
 import Foundation
 import RateSwitcherCore
 
+enum MenuBarStyle: String, CaseIterable, Identifiable {
+    case icon
+    case compact
+    case detailed
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .icon: return "图标"
+        case .compact: return "紧凑"
+        case .detailed: return "详细"
+        }
+    }
+}
+
 final class AppSettings {
     static let shared = AppSettings()
 
@@ -8,6 +24,7 @@ final class AppSettings {
         static let autoSwitch = "autoSwitch"
         static let selectedDeviceUID = "selectedDeviceUID"
         static let showRateInMenuBar = "showRateInMenuBar"
+        static let menuBarStyle = "menuBarStyle"
         static let appleMusicEnabled = "appleMusicEnabled"
         static let neteaseMusicEnabled = "neteaseMusicEnabled"
         static let qqMusicEnabled = "qqMusicEnabled"
@@ -46,6 +63,18 @@ final class AppSettings {
     var showRateInMenuBar: Bool {
         get { defaults.bool(forKey: Key.showRateInMenuBar) }
         set { defaults.set(newValue, forKey: Key.showRateInMenuBar) }
+    }
+
+    /// Falls back to the legacy `showRateInMenuBar` switch for users upgrading from 1.2.
+    var menuBarStyle: MenuBarStyle {
+        get {
+            if let raw = defaults.string(forKey: Key.menuBarStyle), let style = MenuBarStyle(rawValue: raw) { return style }
+            return showRateInMenuBar ? .compact : .icon
+        }
+        set {
+            defaults.set(newValue.rawValue, forKey: Key.menuBarStyle)
+            showRateInMenuBar = newValue != .icon
+        }
     }
 
     var hasShownWelcome: Bool {

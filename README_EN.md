@@ -1,30 +1,19 @@
 <p align="center">
-  <img src="docs/assets/hero.jpg" alt="MusicRateSwitcher — automatic sample-rate matching for macOS" width="100%">
+  <img src="docs/assets/hero.jpg" alt="MusicRateSwitcher — automatic sample-rate matching from the macOS menu bar" width="100%">
 </p>
 
 <h1 align="center">MusicRateSwitcher</h1>
 
 <p align="center">
-  <strong>Keep the source sample rate and your macOS output device in sync—automatically.</strong>
+  <strong>Your player switches to 96 kHz — so does your DAC.</strong><br>
+  A native macOS menu bar utility for Apple Music, NetEase Cloud Music, QQ Music, and Soda Music.
 </p>
 
 <p align="center">
-  A native menu bar utility for Apple Music, NetEase Cloud Music, QQ Music, and Soda Music.
-</p>
-
-<p align="center">
-  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/v/release/Arczotis/MusicRateSwitcher?display_name=tag&style=flat-square&color=1677ff" alt="Latest release"></a>
-  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/downloads/Arczotis/MusicRateSwitcher/total?style=flat-square&color=00b8d9" alt="Downloads"></a>
-  <img src="https://img.shields.io/badge/macOS-13%2B-111827?style=flat-square&logo=apple" alt="macOS 13+">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Arczotis/MusicRateSwitcher?style=flat-square" alt="MIT License"></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases/latest"><strong>Download the latest release</strong></a>
-  ·
-  <a href="https://github.com/Arczotis/MusicRateSwitcher">Star the project ⭐️</a>
-  ·
-  <a href="mailto:841530503@qq.com">Contact Arczotis</a>
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases/latest"><img src="https://img.shields.io/github/v/release/Arczotis/MusicRateSwitcher?display_name=tag&style=for-the-badge&color=3878ff&label=download" alt="Download the latest release"></a>
+  <a href="https://github.com/Arczotis/MusicRateSwitcher/releases"><img src="https://img.shields.io/github/downloads/Arczotis/MusicRateSwitcher/total?style=for-the-badge&color=43d4ff" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-0b1638?style=for-the-badge&logo=apple" alt="macOS 13+">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Arczotis/MusicRateSwitcher?style=for-the-badge&color=1f2937" alt="MIT License"></a>
 </p>
 
 <p align="center">
@@ -33,134 +22,189 @@
 
 ---
 
-MusicRateSwitcher detects the source sample rate of the currently playing track and switches the selected output device to a matching format. This reduces unnecessary resampling caused by a fixed macOS output rate.
+## Why
 
-This is an independent implementation and contains no LosslessSwitcher source code. It uses a pluggable player-source architecture so more music players can be added later.
+macOS runs each output device at **one fixed sample rate** (set in Audio MIDI Setup). Play a 96 kHz Hi-Res track while your DAC sits at 48 kHz and the system quietly resamples it; skip to a 44.1 kHz CD-quality track and it resamples again.
 
-## Features
+MusicRateSwitcher lives in the menu bar, **reads the real source format of the track that is playing right now**, and switches the output device to the same rate whenever the track changes — so every song reaches your DAC at its native rate. No more trips to Audio MIDI Setup.
 
-- Supports Apple Music, NetEase Cloud Music, QQ Music, and Soda Music, with a separate enable/disable switch for each source.
-- Apple Music: reads lossless decoder and playback-format events from macOS Unified Logging to identify the actual ALAC sample rate and bit depth.
-- NetEase Cloud Music: locates the online cache currently being read by the player process and parses the real audio header.
-- QQ Music: locates the current track through the player's cache index; parses standard audio files directly and combines encrypted-cache identifiers with track metadata for Hi-Res formats.
-- Soda Music: identifies the current cache batch and reads the sample rate, bit depth, and channel count from CENC MP4 audio entries.
-- Parses FLAC, MP3, AAC/ADTS, ALAC/AAC MP4, WAVE, and AIFF for NetEase Cloud Music.
-- Uses Core Audio to determine which player is actually producing output, so an open but paused player cannot take control from the audible one.
-- Can follow the system default output or target a specific DAC/audio device.
-- Reads the rates supported by the output device and matches them exactly when possible; otherwise it prefers a fallback from the same sample-rate family.
-- Watches for default-device changes and USB audio hot-plug events.
-- Supports launch at login, a menu bar sample-rate display, manual refresh, diagnostics, and logs.
-- Does not capture audio or save, copy, or export songs.
+## Highlights
 
-## Interface
+| | |
+|---|---|
+| 🎯 **Reads the real format** | Parses audio headers from the player's cache, or follows Apple Music's decoder logs — no guessing |
+| 🎚️ **Follows the player that's actually audible** | Uses Core Audio process objects to see which player is producing output, so a paused app can't take over |
+| 🔁 **Smart fallback** | If the device can't do the source rate, prefers the same rate family (176.4 → 88.2 kHz) |
+| 🎧 **Follow or pin a device** | Follow the system default output or pin a specific DAC; handles hot-plugging and default-device changes |
+| 🪶 **Lightweight and read-only** | Never captures, copies, stores, or exports audio; native Swift, under 2 MB |
+| ✨ **Redesigned UI** | New control panel and menu bar indicator in 1.3, at home in both light and dark mode |
 
-<p align="center">
-  <img src="docs/assets/menu.png" alt="MusicRateSwitcher menu bar interface" width="390">
-</p>
+## Screenshots
 
-<p align="center"><sub>Player status, source format, target output, and common tools in one compact menu.</sub></p>
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="docs/assets/panel-light.png" alt="Control panel (light)" width="340"></td>
+    <td align="center" width="50%"><img src="docs/assets/panel-dark.png" alt="Control panel (dark)" width="340"></td>
+  </tr>
+</table>
 
-## How It Works
+<sub>The UI is in Simplified Chinese.</sub>
+
+Click the menu bar icon to open the control panel:
+
+- **Now playing card** — sample rate, bit depth, codec, and channels, plus the source → output signal path and match status (matched / same-family fallback / failed).
+- **Players** — live status of all four sources. Toggle each one on or off, click a row to open the app; the audible player shows animated level bars.
+- **Output device** — switch the target device and see every rate it supports, with the current one highlighted.
+- **Preferences** — menu bar style and launch at login. The footer has re-detect (⌘R), Audio MIDI Setup, diagnostics, about, and quit (⌘Q). Right-click the menu bar icon for a quick menu.
+
+### Menu bar styles
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/menubar-dark.png">
+  <img src="docs/assets/menubar-light.png" alt="Menu bar styles: idle, icon, compact, switching, detailed" width="520">
+</picture>
+
+Pick **Icon** (waveform only), **Compact** (rate knocked out of a filled capsule — the default), or **Detailed** (two lines: rate, bit depth, and codec). While a switch is in progress the capsule turns into an outline.
+
+## Install
+
+1. Download `MusicRateSwitcher-v1.3.0-macOS.dmg` (or `.zip`) from [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases/latest).
+2. Open the DMG and drag **MusicRateSwitcher** into Applications.
+3. If macOS blocks the first launch:
+   - macOS 15 and later: try to open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**;
+   - macOS 13 / 14: Control-click the app and choose **Open**;
+   - or run:
+
+     ```bash
+     xattr -dr com.apple.quarantine /Applications/MusicRateSwitcher.app
+     ```
+
+4. Start playing in any supported player. The menu bar shows the current rate and the output device follows automatically.
+
+> [!NOTE]
+> The first time it reads NetEase Cloud Music's cache, macOS asks whether to allow access to another app's data. Choose **Allow**, otherwise NetEase formats can't be detected.
+
+## Supported players
+
+| Player | How it detects | Accuracy |
+|---|---|---|
+| **Apple Music** | Follows lossless decoder / playback pipeline events in unified logging | Exact ALAC rate and bit depth; lossy AAC never triggers a switch |
+| **NetEase Cloud Music** | Finds the cache file the process is reading, decodes and parses its header | FLAC, MP3, AAC/ADTS, ALAC/AAC MP4, WAVE, AIFF |
+| **QQ Music** | Locates the current track via the cache index; parses standard headers, uses track metadata for encrypted caches | Exact for Hi-Res tracks; regular encrypted tracks fall back to 44.1 kHz / 16-bit |
+| **Soda Music** | Identifies the current cache batch and parses the CENC MP4 `enca` sample entry | Actual rate, bit depth, and channels |
+
+## How it works
 
 ```mermaid
 flowchart LR
-    A["Apple Music"] --> E["Format detection"]
+    A["Apple Music"] --> E["Source format detection"]
     B["NetEase Cloud Music"] --> E
     C["QQ Music"] --> E
     D["Soda Music"] --> E
-    E --> F["Active-player arbitration"]
-    F --> G["Core Audio device matching"]
+    E --> F["Active player arbitration<br/>(Core Audio process output)"]
+    F --> G["Rate matching<br/>(exact / same-family fallback)"]
     G --> H["DAC / headphones / speakers"]
 ```
 
-## Installation and Use
+**Fallback policy**: match exactly when the device supports the source rate; otherwise use the highest rate in the same family that doesn't exceed the source.
 
-1. Download and extract the latest build from [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases).
-2. Double-click `MusicRateSwitcher.app`.
-3. If macOS blocks the first launch, Control-click the app and choose **Open**.
-4. Start playback in any supported music player.
-5. The menu bar will show a value such as `♫ 96 kHz`, and the selected output device will be matched automatically.
-6. Use **Player Sources** to enable or disable individual integrations. Use the output-device row to follow the system default or select a fixed DAC.
+- 44.1 kHz family: 44.1 / 88.2 / 176.4 / 352.8 kHz
+- 48 kHz family: 48 / 96 / 192 / 384 kHz
 
-The first time MusicRateSwitcher reads the NetEase Cloud Music container, macOS may ask for permission to access data from another app. Allow access; otherwise the cache format cannot be detected.
+For a 176.4 kHz source on a device that tops out at 96 kHz, it picks 88.2 kHz rather than 96 kHz.
 
-## Building
-
-Requirements: macOS 13 or later and either Apple Command Line Tools or Xcode.
-
-```bash
-./scripts/run-tests.sh
-./scripts/build-app.sh
-```
-
-The app is generated at:
-
-```text
-dist/MusicRateSwitcher.app
-```
-
-The build script applies an ad-hoc signature suitable for local use. Public distribution should use an Apple Developer ID signature and Apple notarization.
-
-## Detection Details
+<details>
+<summary><strong>Detection details</strong></summary>
 
 ### Apple Music
 
-MusicRateSwitcher subscribes read-only to macOS Unified Logging events written by Apple Music and parses two kinds of records:
+Subscribes read-only to the unified logging Apple Music writes and parses two kinds of events:
 
-- Playback-pipeline fields such as `sdFormatID / sdBitDepth / asbdSampleRate`.
-- Apple Lossless decoder reports containing channel count, sample rate in Hz, and source bit depth.
+- `sdFormatID / sdBitDepth / asbdSampleRate` reported by the playback pipeline;
+- channels, Hz, and source bit depth reported by the Apple Lossless decoder.
 
-Playback-pipeline events take priority. Decoder events are used only as a one-second delayed fallback so preloading the next track does not switch the device too early. Ordinary AAC placeholder events do not trigger lossless sample-rate switching.
+Pipeline events win; decoder events are a one-second-delayed fallback so preloading the next track never switches early. Plain AAC placeholder formats don't trigger lossless switching.
 
 ### NetEase Cloud Music
 
-The online playback cache is normally located at:
+The online cache lives at:
 
 ```text
 ~/Library/Containers/com.netease.163music/Data/Library/Caches/online_play_cache/
 ```
 
-MusicRateSwitcher inspects the NetEase process file descriptors to identify the `.uc!` file currently being read. It reads only the file header, reverses the cache's `XOR 0xA3` transformation, and then extracts the sample rate, bit depth, channel count, and codec from the standard audio header. The complete song is never copied or written back to disk.
+The app finds the `.uc!` file the NetEase process has open, reads only its header, reverses the cache's `XOR 0xA3`, and parses the standard audio header. Songs are never copied or written back to disk.
 
 ### QQ Music
 
-MusicRateSwitcher accesses QQ Music's `iRRCache` index in read-only mode and uses the most recently accessed entry to locate the active `iMusic` file. Standard formats are parsed directly. For encrypted caches such as `.mgg` and `.mflac`, it extracts the track ID and queries the public QQ Music track metadata fields `hires_sample` and `hires_bitdepth`. If an ordinary encrypted track exposes no sample-rate field, the integration falls back to 44.1 kHz / 16-bit and identifies the QQ codec type in the menu.
+Reads the `iRRCache` index read-only and uses the most recent access to locate the current `iMusic` file. Standard formats are parsed directly; for encrypted caches such as `.mgg` and `.mflac`, the track ID is looked up in QQ Music's public track API for `hires_sample` and `hires_bitdepth`.
 
 ### Soda Music
 
-Soda Music stores its online playback cache in `LunaCacheV2`. The player creates the current track first and preloads subsequent tracks in the same short batch. MusicRateSwitcher uses this behavior to select the first file from the latest batch, then parses the MP4 `enca` audio entry directly. CENC encrypts the media content but leaves the container-level format fields readable, so the audio does not need to be decrypted.
+The online cache lives in `LunaCacheV2`. The player creates the current track's file first and then preloads the next ones in the same batch, so the app takes the first file of the newest batch and parses its MP4 `enca` sample entry. CENC content encryption doesn't touch container-level format fields, so nothing is decrypted.
 
-### Multiple-Player Arbitration
+### Multi-player arbitration
 
-On macOS 14.2 and later, MusicRateSwitcher uses the public Core Audio Process Object API to inspect active output streams. Only a player that is actually producing sound may drive the output rate. If multiple players are audible, the most recently updated reliable format wins. On macOS 13, the app falls back to the most recently updated source.
+On macOS 14.2 and later the public Core Audio Process Object API reports which processes have active output streams; only an audible player can drive the sample rate. If several are audible, the most recently updated reliable format wins. macOS 13 falls back to the most recently updated source.
 
-## Device Fallback Strategy
+</details>
 
-When the device supports the source rate, MusicRateSwitcher uses an exact match. Otherwise it first selects a rate from the same family:
+<details>
+<summary><strong>Known limitations</strong></summary>
 
-- 44.1 kHz family: 44.1 / 88.2 / 176.4 / 352.8 kHz
-- 48 kHz family: 48 / 96 / 192 / 384 kHz
+- The new format is only known after the track changes; reconfiguring the device causes a brief pause when the rate changes.
+- Apple Music support targets lossless / Hi-Res lossless ALAC; lossy AAC doesn't trigger a switch.
+- Player updates can change log or cache formats and require adapter updates.
+- Regular QQ Music encrypted caches don't expose the real sample rate, so they fall back to 44.1 kHz; Hi-Res tracks use the exact values from the API.
+- NetEase's proprietary `.ncm` downloads aren't parsed; standard local audio is.
+- Bluetooth and AirPlay may still encode or resample further down the chain.
+- Rate matching isn't a bit-perfect guarantee; player effects, system volume, and other DSP can still process audio.
 
-For example, if the source is 176.4 kHz but the device supports at most 96 kHz, the app prefers 88.2 kHz because it belongs to the same family.
+</details>
 
-## Adding Another Player
+## Build from source
 
-A new adapter implements the `SampleRateSource` protocol and reports `DetectedSourceFormat`, its runtime state, and—when needed—the process IDs of audio helper processes. The menu, source toggles, Core Audio arbitration, device matching, and diagnostics layers are reusable.
+Requires macOS 13 or later and Xcode or the Apple Command Line Tools.
 
-## Known Limitations
+```bash
+./scripts/run-tests.sh        # self-tests
+./scripts/build-app.sh        # builds dist/MusicRateSwitcher.app
+./scripts/package-release.sh  # builds the DMG / ZIP and SHA-256 files
+```
 
-- The new format can only be confirmed after a track starts. When the sample rate changes, reconfiguring the output device may cause a very short interruption.
-- The current Apple Music integration targets lossless and Hi-Res Lossless ALAC. Lossy AAC does not trigger switching.
-- Player updates may change log or cache formats and require an adapter update.
-- Public metadata for ordinary encrypted QQ Music caches does not include the actual sample rate. These tracks currently fall back to the common 44.1 kHz value; Hi-Res tracks use the exact sample rate and bit depth returned by the metadata endpoint.
-- Proprietary NetEase `.ncm` download files are not currently supported. Standard local audio files can be parsed directly.
-- Bluetooth and AirPlay may still encode or resample audio later in the output chain.
-- Sample-rate matching alone does not guarantee absolute bit-perfect playback. Player effects, system volume, and other DSP may still process the signal.
+The build is ad-hoc signed for local use; sign with a Developer ID and notarize for public distribution.
 
-## Logs
+Debug builds accept `--snapshot <dir>`, which renders the control panel, menu bar styles, and about window with demo data to PNG — the README screenshots come from this:
 
-Choose **Diagnostics → Open Log File** from the menu, or open:
+```bash
+swift build && .build/debug/MusicRateSwitcher --snapshot ./snapshots
+```
+
+### Layout
+
+```text
+Sources/
+├── RateSwitcherCore/      # player detection, header parsing, Core Audio control (UI-free)
+├── MusicRateSwitcher/     # menu bar app: SwiftUI panel, menu bar renderer, windows
+└── RateSwitcherSelfTest/  # parser and matcher self-tests
+```
+
+**Adding a player**: implement `SampleRateSource`, reporting `DetectedSourceFormat`, running state, and, if needed, the PIDs of the player's audio helper processes. The panel, toggles, output arbitration, device matching, and diagnostics all come for free.
+
+## Diagnostics and logs
+
+The **Diagnostics** button in the panel footer shows a summary and opens or copies the log. The log file lives at:
 
 ```text
 ~/Library/Logs/MusicRateSwitcher/MusicRateSwitcher.log
 ```
+
+Please attach the diagnostics summary when reporting a problem.
+
+## Support
+
+If MusicRateSwitcher makes your headphones sound a little better, a ⭐️ star or a share goes a long way.
+
+Open an [issue](https://github.com/Arczotis/MusicRateSwitcher/issues) or email [841530503@qq.com](mailto:841530503@qq.com).
+
+This is an independent implementation and contains no LosslessSwitcher code. Released under the [MIT License](LICENSE).
