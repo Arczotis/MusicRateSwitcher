@@ -33,7 +33,8 @@ enum SnapshotRenderer {
 
     static func demoModel(playing: Bool) -> PanelModel {
         let model = PanelModel()
-        model.version = "1.3.0"
+        let info = NSDictionary(contentsOfFile: "Resources/Info.plist")
+        model.version = info?["CFBundleShortVersionString"] as? String ?? "dev"
         let format = SourceAudioFormat(sampleRate: 96_000, bitDepth: 24, channels: 2, codec: "FLAC")
         let dac = AudioOutputDevice(
             id: 1, uid: "dac", name: "MOONDROP Dawn Pro",
@@ -49,7 +50,7 @@ enum SnapshotRenderer {
         model.selectedDevice = dac
         model.players = [
             PlayerRowState(player: .appleMusic, phase: .waiting, isEnabled: true, isInstalled: true, isActive: false),
-            PlayerRowState(player: .neteaseMusic, phase: playing ? .playing(format) : .waiting, isEnabled: true, isInstalled: true, isActive: playing),
+            PlayerRowState(player: .neteaseMusic, phase: playing ? .playing(format) : .permissionRequired, isEnabled: true, isInstalled: true, isActive: playing),
             PlayerRowState(
                 player: .qqMusic,
                 phase: playing ? .playing(SourceAudioFormat(sampleRate: 44_100, bitDepth: 16, channels: 2, codec: "FLAC (QQ)")) : .notRunning,

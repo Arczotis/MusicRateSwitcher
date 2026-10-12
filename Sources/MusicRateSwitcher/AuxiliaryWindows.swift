@@ -101,7 +101,7 @@ struct AboutView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Tip(symbol: "menubar.arrow.up.rectangle", text: "点击菜单栏中的波形图标打开控制面板")
                         Tip(symbol: "play.circle", text: "在任一受支持的播放器中开始播放即可自动匹配")
-                        Tip(symbol: "lock.shield", text: "首次读取网易云缓存时，请允许访问其他 App 的数据")
+                        Tip(symbol: "lock.shield", text: "读取网易云缓存需要授权：系统设置 → 隐私与安全性 → 文件与文件夹")
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)

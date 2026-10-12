@@ -230,6 +230,21 @@ do {
         "旧系统应回退到最近数据源"
     )
 
+    try check(
+        FileAccess.isPermissionDenied(CocoaError(.fileWriteNoPermission)),
+        "沙盒拒绝读取（Cocoa 513）应识别为权限问题"
+    )
+    try check(
+        FileAccess.isPermissionDenied(NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoPermissionError, userInfo: [
+            NSUnderlyingErrorKey: NSError(domain: NSPOSIXErrorDomain, code: Int(EPERM))
+        ])),
+        "EPERM 应识别为权限问题"
+    )
+    try check(
+        !FileAccess.isPermissionDenied(CocoaError(.fileReadNoSuchFile)),
+        "文件不存在不应识别为权限问题"
+    )
+
     print("PASS: \(checks) checks")
 } catch {
     fputs("FAIL: \(error)\n", stderr)

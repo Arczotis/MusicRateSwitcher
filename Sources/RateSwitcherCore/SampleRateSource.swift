@@ -50,7 +50,29 @@ public enum SampleRateSourceState: Equatable, Sendable {
     case waitingForPlayback
     case detecting(String?)
     case playing(DetectedSourceFormat)
+    /// macOS denied reading the player's data (App Data protection). The user
+    /// has to grant access in System Settings; retrying will not help.
+    case permissionRequired
     case error(String)
+}
+
+public enum FileAccess {
+    /// True when the error means the sandbox / TCC refused the read, as opposed
+    /// to a missing or malformed file.
+    public static func isPermissionDenied(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        if nsError.domain == NSCocoaErrorDomain,
+           [NSFileReadNoPermissionError, NSFileWriteNoPermissionError].contains(nsError.code) {
+            return true
+        }
+        if nsError.domain == NSPOSIXErrorDomain, [Int(EPERM), Int(EACCES)].contains(nsError.code) {
+            return true
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
+            return isPermissionDenied(underlying)
+        }
+        return false
+    }
 }
 
 public protocol SampleRateSource: AnyObject {

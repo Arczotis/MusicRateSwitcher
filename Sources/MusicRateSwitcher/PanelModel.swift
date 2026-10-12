@@ -10,6 +10,7 @@ protocol PanelActions: AnyObject {
     func setMenuBarStyle(_ style: MenuBarStyle)
     func setLaunchAtLogin(_ enabled: Bool)
     func refreshNow()
+    func openPrivacySettings()
     func openAudioMIDISetup()
     func showDiagnostics()
     func openLog()
@@ -24,6 +25,7 @@ enum PlayerPhase: Equatable {
     case waiting
     case detecting
     case playing(SourceAudioFormat)
+    case permissionRequired
     case error(String)
 }
 

@@ -106,6 +106,12 @@ public final class NeteasePlaybackMonitor: SampleRateSource {
             }
         } catch AudioFormatParseError.insufficientData {
             scheduleRetry(for: selected.url, message: "缓存头尚未写入完整")
+        } catch where FileAccess.isPermissionDenied(error) {
+            parseFailures[selected.url] = nil
+            if lastState != .permissionRequired {
+                Diagnostics.shared.warning("没有读取网易云缓存的权限，请在“系统设置 → 隐私与安全性 → 文件与文件夹”中为 MusicRateSwitcher 打开网易云音乐的数据访问：\(error.localizedDescription)")
+            }
+            emit(.permissionRequired)
         } catch {
             scheduleRetry(for: selected.url, message: error.localizedDescription)
         }

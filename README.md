@@ -70,7 +70,7 @@ MusicRateSwitcher 常驻菜单栏，**读取播放器正在播放的那首歌的
 
 ## 安装
 
-1. 前往 [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases/latest) 下载 `MusicRateSwitcher-v1.3.0-macOS.dmg`（或 `.zip`）。
+1. 前往 [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases/latest) 下载最新的 `MusicRateSwitcher-v<版本>-macOS.dmg`（或 `.zip`）。
 2. 打开 DMG，把 **MusicRateSwitcher** 拖进“应用程序”文件夹。
 3. 首次打开如果被 macOS 拦截：
    - macOS 15 及以上：先尝试打开一次，再到 **系统设置 → 隐私与安全性**，点击“仍要打开”；
@@ -83,8 +83,10 @@ MusicRateSwitcher 常驻菜单栏，**读取播放器正在播放的那首歌的
 
 4. 在任一受支持的播放器中开始播放，菜单栏就会显示当前采样率，输出设备会自动匹配。
 
-> [!NOTE]
-> 首次读取网易云音乐缓存时，macOS 会询问是否允许访问其他 App 的数据，请选择 **允许**，否则无法识别网易云的音频格式。
+> [!IMPORTANT]
+> **网易云音乐需要手动授权。** 网易云的缓存位于它自己的 App 容器中，新版 macOS 不会弹窗询问，而是直接拒绝读取。此时面板中网易云一行会显示“需要授权”，点击 **去授权**，在 **系统设置 → 隐私与安全性 → 文件与文件夹** 中为 MusicRateSwitcher 打开网易云音乐的数据访问即可。找不到该项时，也可以把 App 加入 **完全磁盘访问权限**。
+>
+> 从 1.3.1 起，发布版本使用固定证书签名，授权一次后升级不会丢失。从 1.3.0 或更早版本升级时需要重新授权一次。
 
 ## 支持的播放器
 
@@ -172,9 +174,10 @@ macOS 14.2 及以上使用公开的 Core Audio Process Object API 检查活跃�
 ./scripts/run-tests.sh        # 运行自检
 ./scripts/build-app.sh        # 生成 dist/MusicRateSwitcher.app
 ./scripts/package-release.sh  # 生成 DMG / ZIP 及 SHA-256
+./scripts/create-signing-cert.sh  # （首次）生成固定的自签名签名证书
 ```
 
-构建脚本使用 ad-hoc 签名，适合本机运行；公开分发时应改用 Developer ID 签名并完成 notarization。
+`build-app.sh` 会优先使用钥匙串中名为 `MusicRateSwitcher Self-Signed` 的签名身份（可用 `./scripts/create-signing-cert.sh` 生成），这样每次构建的代码签名身份保持一致，macOS 的隐私授权在升级后依然有效；找不到时回退为 ad-hoc 签名。请备份这个证书，换证书签名会让用户的授权再次失效。公开分发的最佳做法仍是 Developer ID 签名并完成 notarization。
 
 调试构建支持 `--snapshot <目录>`，会用演示数据把控制面板、菜单栏样式和关于窗口渲染为 PNG，README 中的截图即由此生成：
 

@@ -103,7 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
     private func handleState(_ state: SampleRateSourceState, from player: MusicPlayerID) {
         sourceStates[player] = state
         switch state {
-        case .appNotRunning, .waitingForPlayback, .error:
+        case .appNotRunning, .waitingForPlayback, .permissionRequired, .error:
             detections[player] = nil
             if activeDetection?.player == player { choosePreferredDetection() }
         case .playing(let detection):
@@ -216,6 +216,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         case .waitingForPlayback: return .waiting
         case .detecting: return .detecting
         case .playing(let detection): return .playing(detection.format)
+        case .permissionRequired: return .permissionRequired
         case .error(let message): return .error(message)
         }
     }
@@ -229,6 +230,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         case .playing(let detection):
             let marker = activeDetection?.player == player ? " ●" : ""
             return "\(player.displayName)：\(detection.format.description)\(marker)"
+        case .permissionRequired: return "\(player.displayName)：需要授权读取播放器数据"
         case .error(let message): return "\(player.displayName)：\(message)"
         }
     }
@@ -379,6 +381,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         popover.performClose(nil)
         NSWorkspace.shared.openApplication(at: url, configuration: .init())
     }
+
+    func openPrivacySettings() {
+        popover.performClose(nil)
+        NSWorkspace.shared.open(Self.filesAndFoldersSettingsURL)
+    }
+
+    static let filesAndFoldersSettingsURL =
+        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders")!
 
     func openAudioMIDISetup() {
         popover.performClose(nil)

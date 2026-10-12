@@ -68,7 +68,7 @@ Pick **Icon** (waveform only), **Compact** (rate knocked out of a filled capsule
 
 ## Install
 
-1. Download `MusicRateSwitcher-v1.3.0-macOS.dmg` (or `.zip`) from [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases/latest).
+1. Download the latest `MusicRateSwitcher-v<version>-macOS.dmg` (or `.zip`) from [Releases](https://github.com/Arczotis/MusicRateSwitcher/releases/latest).
 2. Open the DMG and drag **MusicRateSwitcher** into Applications.
 3. If macOS blocks the first launch:
    - macOS 15 and later: try to open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**;
@@ -81,8 +81,10 @@ Pick **Icon** (waveform only), **Compact** (rate knocked out of a filled capsule
 
 4. Start playing in any supported player. The menu bar shows the current rate and the output device follows automatically.
 
-> [!NOTE]
-> The first time it reads NetEase Cloud Music's cache, macOS asks whether to allow access to another app's data. Choose **Allow**, otherwise NetEase formats can't be detected.
+> [!IMPORTANT]
+> **NetEase Cloud Music needs a manual grant.** Its cache lives inside its own app container, and recent macOS versions deny the read without asking. The NetEase row then shows "needs authorization": click **去授权** (Authorize) and, in **System Settings → Privacy & Security → Files & Folders**, turn on MusicRateSwitcher's access to NetEase Cloud Music's data. If you can't find it there, adding the app to **Full Disk Access** also works.
+>
+> Starting with 1.3.1, releases are signed with a fixed certificate, so the grant survives updates. Upgrading from 1.3.0 or earlier needs one more grant.
 
 ## Supported players
 
@@ -170,9 +172,10 @@ Requires macOS 13 or later and Xcode or the Apple Command Line Tools.
 ./scripts/run-tests.sh        # self-tests
 ./scripts/build-app.sh        # builds dist/MusicRateSwitcher.app
 ./scripts/package-release.sh  # builds the DMG / ZIP and SHA-256 files
+./scripts/create-signing-cert.sh  # (once) creates the fixed self-signed signing identity
 ```
 
-The build is ad-hoc signed for local use; sign with a Developer ID and notarize for public distribution.
+`build-app.sh` signs with the `MusicRateSwitcher Self-Signed` identity from your keychain when it exists (create it with `./scripts/create-signing-cert.sh`), which keeps the code-signing identity stable across builds so macOS privacy grants survive updates; otherwise it falls back to ad-hoc signing. Back the certificate up — signing with a different one invalidates users' grants again. Developer ID signing plus notarization remains the best option for public distribution.
 
 Debug builds accept `--snapshot <dir>`, which renders the control panel, menu bar styles, and about window with demo data to PNG — the README screenshots come from this:
 

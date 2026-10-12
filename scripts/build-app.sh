@@ -23,6 +23,20 @@ cp "$project_dir/Resources/Info.plist" "$contents_dir/Info.plist"
 cp "$project_dir/Resources/AppIcon.icns" "$contents_dir/Resources/AppIcon.icns"
 chmod +x "$contents_dir/MacOS/MusicRateSwitcher"
 
-codesign --force --deep --sign - "$app_dir"
+# Prefer the stable self-signed identity (see create-signing-cert.sh) so macOS
+# privacy grants survive updates; fall back to ad-hoc for local builds.
+identity=${SIGN_IDENTITY:-"MusicRateSwitcher Self-Signed"}
+if security find-certificate -c "$identity" >/dev/null 2>&1; then
+    # securityd occasionally answers errSecInternalComponent; a retry clears it.
+    for attempt in 1 2 3; do
+        codesign --force --sign "$identity" "$app_dir" && break
+        [[ $attempt == 3 ]] && exit 1
+        sleep 1
+    done
+else
+    echo "warning: signing identity \"$identity\" not found; using ad-hoc signature." >&2
+    echo "         Privacy grants will not survive updates. Run scripts/create-signing-cert.sh." >&2
+    codesign --force --sign - "$app_dir"
+fi
 
 echo "$app_dir"

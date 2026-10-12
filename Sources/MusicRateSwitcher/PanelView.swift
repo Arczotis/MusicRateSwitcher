@@ -423,6 +423,16 @@ private struct PlayerRow: View {
                 }
             }
             Spacer(minLength: 6)
+            if row.phase == .permissionRequired {
+                Button("去授权") { actions?.openPrivacySettings() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10.5, weight: .semibold))
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Palette.warning))
+                    .help("在“系统设置 → 隐私与安全性 → 文件与文件夹”中，为 MusicRateSwitcher 打开\(row.player.displayName)的数据访问")
+            }
             if row.isActive {
                 LiveBars(color: Palette.electric)
                     .frame(width: 14, height: 12)
@@ -463,6 +473,7 @@ private struct PlayerRow: View {
             if let bitDepth = format.bitDepth { parts.append("\(bitDepth)-bit") }
             parts.append(format.codec)
             return parts.joined(separator: " · ")
+        case .permissionRequired: return "需要授权读取\(row.player.displayName)数据"
         case .error(let message): return message
         }
     }
@@ -473,6 +484,7 @@ private struct PlayerRow: View {
         case .disabled, .notRunning: return Color.secondary.opacity(0.5)
         case .waiting, .detecting: return Palette.warning
         case .playing: return Palette.electric
+        case .permissionRequired: return Palette.warning
         case .error: return Palette.danger
         }
     }
