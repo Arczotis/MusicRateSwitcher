@@ -424,14 +424,12 @@ private struct PlayerRow: View {
             }
             Spacer(minLength: 6)
             if row.phase == .permissionRequired {
-                Button("去授权") { actions?.openPrivacySettings() }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 10.5, weight: .semibold))
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Palette.warning))
-                    .help("在“系统设置 → 隐私与安全性 → 文件与文件夹”中，为 MusicRateSwitcher 打开\(row.player.displayName)的数据访问")
+                HStack(spacing: 4) {
+                    MiniButton(title: "选择目录", prominent: true) { actions?.openNeteaseCachePicker() }
+                        .help("选中网易云音乐的 \(NeteaseCacheAccess.cacheFolderName) 缓存目录；授权一次后无需再管权限")
+                    MiniButton(title: "完全磁盘访问", prominent: false) { actions?.openFullDiskAccessSettings() }
+                        .help("打开“系统设置 → 隐私与安全性 → 完全磁盘访问权限”，把 MusicRateSwitcher 加入列表后重新打开 App")
+                }
             }
             if row.isActive {
                 LiveBars(color: Palette.electric)
@@ -473,7 +471,7 @@ private struct PlayerRow: View {
             if let bitDepth = format.bitDepth { parts.append("\(bitDepth)-bit") }
             parts.append(format.codec)
             return parts.joined(separator: " · ")
-        case .permissionRequired: return "需要授权读取\(row.player.displayName)数据"
+        case .permissionRequired: return "需要授权读取缓存"
         case .error(let message): return message
         }
     }
@@ -487,6 +485,34 @@ private struct PlayerRow: View {
         case .permissionRequired: return Palette.warning
         case .error: return Palette.danger
         }
+    }
+}
+
+/// Compact capsule action, used by the permission row.
+private struct MiniButton: View {
+    let title: String
+    let prominent: Bool
+    let action: () -> Void
+    @StateObject private var hovering = Flag()
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 10.5, weight: .semibold))
+                .foregroundStyle(prominent ? Color.white : Color.primary.opacity(0.85))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule().fill(
+                        prominent
+                            ? Palette.warning.opacity(hovering.value ? 0.85 : 1)
+                            : Color.primary.opacity(hovering.value ? 0.2 : 0.1)
+                    )
+                )
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering.value = $0 }
     }
 }
 
@@ -771,6 +797,10 @@ private struct FooterView: View {
                 Button("显示诊断摘要") { model.actions?.showDiagnostics() }
                 Button("打开日志文件") { model.actions?.openLog() }
                 Button("复制最近日志") { model.actions?.copyDiagnostics() }
+                Divider()
+                Button("选择网易云缓存目录") { model.actions?.openNeteaseCachePicker() }
+                Button("复制网易云缓存路径") { model.actions?.copyNeteaseCachePath() }
+                Button("完全磁盘访问权限") { model.actions?.openFullDiskAccessSettings() }
             } label: {
                 Image(systemName: "stethoscope")
                     .font(.system(size: 12.5, weight: .medium))

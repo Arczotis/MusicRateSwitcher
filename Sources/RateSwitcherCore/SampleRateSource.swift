@@ -50,9 +50,10 @@ public enum SampleRateSourceState: Equatable, Sendable {
     case waitingForPlayback
     case detecting(String?)
     case playing(DetectedSourceFormat)
-    /// macOS denied reading the player's data (App Data protection). The user
-    /// has to grant access in System Settings; retrying will not help.
-    case permissionRequired
+    /// macOS denied reading the player's data (App Data protection). The
+    /// associated value is the directory holding the blocked file, so the UI
+    /// can point the user straight at it; retrying alone will not help.
+    case permissionRequired(String?)
     case error(String)
 }
 

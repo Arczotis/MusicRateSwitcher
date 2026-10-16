@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.3.2
+
+### 修复
+
+- **网易云音乐授权重做。** macOS 把“其他 App 的数据”（`kTCCServiceSystemPolicyAppData`）的授权限定在 App 本次运行期间，App 一退出就重置；因此“系统设置 → 隐私与安全性 → 文件与文件夹”里的开关点开后会被系统立刻判回关闭，这是 1.3.1 授权方案失效的根因。
+  现在面板里的 **选择目录** 会打开系统文件选择器并直接定位到 `…/com.netease.163music/Data/Library/Caches/online_play_cache`，确认后把授权以 security-scoped bookmark 保存，每次启动自动恢复；授权后立刻校验可读性，若系统仍拒绝，会明确提示改用完全磁盘访问权限，而不是留下一个无声的“需要授权”。
+- 授权失败的日志与提示改为给出真实原因和两条可行路径，不再指向无效的“文件与文件夹”。
+- `Info.plist` 增加 `NSAppDataUsageDescription`（macOS 14+）：系统若弹出“访问其他 App 的数据”时展示用途说明。
+- 欢迎窗口的授权提示同步更新；诊断摘要新增当前网易云缓存授权目录，诊断菜单新增“选择网易云缓存目录 / 复制网易云缓存路径 / 完全磁盘访问权限”。
+
+### 签名
+
+- `create-signing-cert.sh` 现在会把自签证书设为代码签名受信任（消除 `CSSMERR_TP_NOT_TRUSTED`）；在此之前 `security find-identity -v -p codesigning` 认为该身份无效，任何按“有效身份”判断签名的流程都会误判为未签名。
+- `build-app.sh` 在构建后打印实际签名身份与 designated requirement，签名身份一旦变化即可发现 —— 那正是用户授权失效的原因。
+
+### 测试
+
+- 自检新增网易云缓存授权用例：授权、覆盖范围、跨实例恢复、撤销、选择器默认目录，共 40 项通过。
+
 ## 1.3.1
 
 ### 修复

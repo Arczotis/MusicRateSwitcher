@@ -84,9 +84,13 @@ MusicRateSwitcher 常驻菜单栏，**读取播放器正在播放的那首歌的
 4. 在任一受支持的播放器中开始播放，菜单栏就会显示当前采样率，输出设备会自动匹配。
 
 > [!IMPORTANT]
-> **网易云音乐需要手动授权。** 网易云的缓存位于它自己的 App 容器中，新版 macOS 不会弹窗询问，而是直接拒绝读取。此时面板中网易云一行会显示“需要授权”，点击 **去授权**，在 **系统设置 → 隐私与安全性 → 文件与文件夹** 中为 MusicRateSwitcher 打开网易云音乐的数据访问即可。找不到该项时，也可以把 App 加入 **完全磁盘访问权限**。
+> **网易云音乐首次使用需要授权一次。** 网易云的缓存在它自己的 App 容器里（`~/Library/Containers/com.netease.163music/Data/Library/Caches/online_play_cache`），macOS 把这当作“其他 App 的数据”保护起来：**弹窗授权只在本次运行内有效**，App 一退出就重置，所以 **系统设置 → 隐私与安全性 → 文件与文件夹** 里那个开关点开后会立刻被系统判回关闭 —— 那条路走不通。
 >
-> 从 1.3.1 起，发布版本使用固定证书签名，授权一次后升级不会丢失。从 1.3.0 或更早版本升级时需要重新授权一次。
+> 正确做法：面板里网易云一行显示“需要授权读取缓存”时，点 **选择目录**。系统文件选择器会直接打开到 `online_play_cache` 目录，确认即可；授权以 security-scoped bookmark 保存，之后升级、重启都有效。
+>
+> 如果确认后系统仍然拒绝读取，说明该目录的授权在这台机器上不生效，就点 **完全磁盘访问**，在 **系统设置 → 隐私与安全性 → 完全磁盘访问权限** 中勾选 MusicRateSwitcher，然后退出并重新打开 App。
+>
+> 从 1.3.2 起改用文件选择器授权，1.3.1 及更早版本做的“文件与文件夹”授权在升级后需要按上面的流程重做一次；发布版本继续使用固定证书签名，此后升级不会丢失授权。
 
 ## 支持的播放器
 
@@ -177,7 +181,7 @@ macOS 14.2 及以上使用公开的 Core Audio Process Object API 检查活跃�
 ./scripts/create-signing-cert.sh  # （首次）生成固定的自签名签名证书
 ```
 
-`build-app.sh` 会优先使用钥匙串中名为 `MusicRateSwitcher Self-Signed` 的签名身份（可用 `./scripts/create-signing-cert.sh` 生成），这样每次构建的代码签名身份保持一致，macOS 的隐私授权在升级后依然有效；找不到时回退为 ad-hoc 签名。请备份这个证书，换证书签名会让用户的授权再次失效。公开分发的最佳做法仍是 Developer ID 签名并完成 notarization。
+`build-app.sh` 会优先使用钥匙串中名为 `MusicRateSwitcher Self-Signed` 的签名身份（可用 `./scripts/create-signing-cert.sh` 生成，脚本会顺带把证书设为代码签名受信任），这样每次构建的代码签名身份保持一致，macOS 的隐私授权在升级后依然有效；找不到时回退为 ad-hoc 签名。构建结束会打印实际签名身份与 designated requirement —— 它们一旦变化，用户的授权就会失效。请备份这个证书，换证书签名会让授权再次失效。公开分发的最佳做法仍是 Developer ID 签名并完成 notarization。
 
 调试构建支持 `--snapshot <目录>`，会用演示数据把控制面板、菜单栏样式和关于窗口渲染为 PNG，README 中的截图即由此生成：
 

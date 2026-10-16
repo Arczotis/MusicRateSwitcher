@@ -245,6 +245,33 @@ do {
         "文件不存在不应识别为权限问题"
     )
 
+    let suiteName = "io.github.music-rate-switcher.selftest"
+    guard let testDefaults = UserDefaults(suiteName: suiteName) else {
+        throw SelfTestError.failed("无法创建测试用 UserDefaults")
+    }
+    testDefaults.removePersistentDomain(forName: suiteName)
+    let cacheAccess = NeteaseCacheAccess(defaults: testDefaults)
+    try check(!cacheAccess.isGranted, "未授权时不应报告已授权")
+
+    let cacheDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        .appendingPathComponent("mrs-selftest-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: cacheDir) }
+
+    _ = cacheAccess.grant(cacheDir)
+    try check(cacheAccess.isGranted, "授权后应处于已授权状态")
+    try check(cacheAccess.covers(cacheDir), "授权目录应覆盖自身")
+    try check(cacheAccess.covers(cacheDir.appendingPathComponent("123-_-_999.uc!")), "授权目录应覆盖其中的缓存文件")
+    try check(!cacheAccess.covers(cacheDir.deletingLastPathComponent()), "不应覆盖授权目录的上级目录")
+    try check(NeteaseCacheAccess(defaults: testDefaults).isGranted, "授权状态应可跨实例恢复")
+    try check(
+        NeteaseCacheAccess.defaultPickerDirectory(hint: cacheDir).path == cacheDir.path,
+        "文件选择器应默认打开被拒绝的目录"
+    )
+    cacheAccess.revoke()
+    try check(!NeteaseCacheAccess(defaults: testDefaults).isGranted, "撤销后不应再报告已授权")
+    testDefaults.removePersistentDomain(forName: suiteName)
+
     print("PASS: \(checks) checks")
 } catch {
     fputs("FAIL: \(error)\n", stderr)

@@ -82,9 +82,13 @@ Pick **Icon** (waveform only), **Compact** (rate knocked out of a filled capsule
 4. Start playing in any supported player. The menu bar shows the current rate and the output device follows automatically.
 
 > [!IMPORTANT]
-> **NetEase Cloud Music needs a manual grant.** Its cache lives inside its own app container, and recent macOS versions deny the read without asking. The NetEase row then shows "needs authorization": click **去授权** (Authorize) and, in **System Settings → Privacy & Security → Files & Folders**, turn on MusicRateSwitcher's access to NetEase Cloud Music's data. If you can't find it there, adding the app to **Full Disk Access** also works.
+> **NetEase Cloud Music needs a one-time grant.** Its cache lives inside its own app container (`~/Library/Containers/com.netease.163music/Data/Library/Caches/online_play_cache`), which macOS protects as *other app data*: the consent dialog only lasts for the current run and resets when the app quits, so the matching switch under **System Settings → Privacy & Security → Files & Folders** snaps back off — that route does not work.
 >
-> Starting with 1.3.1, releases are signed with a fixed certificate, so the grant survives updates. Upgrading from 1.3.0 or earlier needs one more grant.
+> Do this instead: when the NetEase row says "needs authorization to read the cache", click **选择目录** (Choose folder). The system picker opens straight at `online_play_cache`; confirm it and the grant is stored as a security-scoped bookmark, surviving restarts and updates.
+>
+> If macOS still refuses after you confirm, the picker grant does not stick on that machine: click **完全磁盘访问** (Full Disk Access), tick MusicRateSwitcher under **System Settings → Privacy & Security → Full Disk Access**, then quit and reopen the app.
+>
+> 1.3.2 replaces the old file-and-folder grant with the picker; grants made on 1.3.1 or earlier have to be redone once. Releases keep using the fixed signing certificate, so grants survive later updates.
 
 ## Supported players
 

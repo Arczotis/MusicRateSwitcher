@@ -55,6 +55,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         installTerminationHandlers()
         startActivityPolling()
         refreshUI()
+        if NeteaseCacheAccess.shared.startAccess() {
+            Diagnostics.shared.info("网易云缓存目录授权已恢复：\(NeteaseCacheAccess.shared.grantedPath ?? "-")")
+        }
         for (player, source) in sources where settings.isSourceEnabled(player) { source.start() }
         Diagnostics.shared.info("MusicRateSwitcher 已启动，自动切换=\(settings.autoSwitch)")
 
@@ -77,6 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         activityTimer?.cancel()
         activityTimer = nil
         sources.values.forEach { $0.stop() }
+        NeteaseCacheAccess.shared.stopAccess()
         Diagnostics.shared.info("MusicRateSwitcher 已退出")
     }
 
@@ -102,6 +106,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
 
     private func handleState(_ state: SampleRateSourceState, from player: MusicPlayerID) {
         sourceStates[player] = state
+        if player == .neteaseMusic, case .permissionRequired(let directory) = state {
+            if model.neteaseCacheHint != directory { model.neteaseCacheHint = directory }
+        }
         switch state {
         case .appNotRunning, .waitingForPlayback, .permissionRequired, .error:
             detections[player] = nil
@@ -200,6 +207,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         model.launchAtLogin = launchAtLoginEnabled
         model.launchAtLoginAvailable = Bundle.main.bundleURL.pathExtension.lowercased() == "app"
         model.menuBarStyle = settings.menuBarStyle
+        let granted = NeteaseCacheAccess.shared.grantedPath
+        if model.neteaseGrantedPath != granted { model.neteaseGrantedPath = granted }
         if activeDetection == nil, !switching { model.sync = .idle }
         updateStatusButton()
     }
@@ -382,13 +391,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         NSWorkspace.shared.openApplication(at: url, configuration: .init())
     }
 
-    func openPrivacySettings() {
+    /// NetEase keeps its playback cache inside its own sandbox container, which
+    /// macOS protects as "other app data": the consent dialog only lasts for
+    /// one run and the Files & Folders switch does not persist, so the file
+    /// picker grant is what we store (as a security-scoped bookmark).
+    func openNeteaseCachePicker() {
         popover.performClose(nil)
-        NSWorkspace.shared.open(Self.filesAndFoldersSettingsURL)
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = false
+        panel.prompt = "授权"
+        panel.message = "选中网易云音乐的 \(NeteaseCacheAccess.cacheFolderName) 缓存目录。MusicRateSwitcher 只读取其中的缓存文件头部，用来识别当前曲目的采样率。"
+        panel.directoryURL = NeteaseCacheAccess.defaultPickerDirectory(
+            hint: model.neteaseCacheHint.map { URL(fileURLWithPath: $0, isDirectory: true) }
+        )
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let stored = NeteaseCacheAccess.shared.grant(url)
+        Diagnostics.shared.info("已授权网易云缓存目录：\(url.path)（bookmark=\(stored ? "已保存" : "未保存")）")
+        refreshUI()
+        sources[.neteaseMusic]?.refreshNow()
+        verifyNeteaseAccess(at: url, stored: stored)
     }
 
-    static let filesAndFoldersSettingsURL =
-        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders")!
+    /// The picker grant applies right away. If macOS still refuses the read the
+    /// user has to fall back to Full Disk Access — say so instead of leaving a
+    /// silent "需要授权" row behind.
+    private func verifyNeteaseAccess(at url: URL, stored: Bool) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            guard let self else { return }
+            let readable = (try? FileManager.default.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )) != nil
+            guard readable else {
+                Diagnostics.shared.warning("已选择 \(url.path)，但 macOS 仍然拒绝读取，需要完全磁盘访问权限")
+                self.showAlert(
+                    title: "系统仍然拒绝读取",
+                    message: "目录已记录，但 macOS 依然不允许访问。请在面板中点“完全磁盘访问”，把 MusicRateSwitcher 加入列表，然后退出并重新打开它。"
+                )
+                return
+            }
+            Diagnostics.shared.info("网易云缓存目录授权校验通过")
+            if !stored {
+                Diagnostics.shared.warning("该目录的授权记录未能保存，重启 App 后可能需要重新授权")
+            }
+            self.sources[.neteaseMusic]?.refreshNow()
+        }
+    }
+
+    func openFullDiskAccessSettings() {
+        popover.performClose(nil)
+        NSWorkspace.shared.open(Self.fullDiskAccessSettingsURL)
+    }
+
+    func copyNeteaseCachePath() {
+        guard let path = model.neteaseCacheHint ?? model.neteaseGrantedPath else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(path, forType: .string)
+        Diagnostics.shared.info("已复制网易云缓存路径：\(path)")
+    }
+
+    static let fullDiskAccessSettingsURL =
+        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
 
     func openAudioMIDISetup() {
         popover.performClose(nil)
@@ -422,6 +491,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, PanelActions {
         let text = """
         应用版本：\(model.version)
         系统：macOS \(ProcessInfo.processInfo.operatingSystemVersionString)
+        网易云缓存授权：\(NeteaseCacheAccess.shared.grantedPath ?? "未授权")
         \(sourceText)
         \(outputTitle)
         自动切换：\(settings.autoSwitch ? "开启" : "关闭")

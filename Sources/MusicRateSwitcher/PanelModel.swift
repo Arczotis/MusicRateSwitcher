@@ -10,7 +10,9 @@ protocol PanelActions: AnyObject {
     func setMenuBarStyle(_ style: MenuBarStyle)
     func setLaunchAtLogin(_ enabled: Bool)
     func refreshNow()
-    func openPrivacySettings()
+    func openNeteaseCachePicker()
+    func openFullDiskAccessSettings()
+    func copyNeteaseCachePath()
     func openAudioMIDISetup()
     func showDiagnostics()
     func openLog()
@@ -61,6 +63,11 @@ final class PanelModel: ObservableObject {
     @Published var launchAtLoginAvailable = false
     @Published var menuBarStyle: MenuBarStyle = .compact
     @Published var sync: SyncState = .idle
+    /// Directory NetEase is playing from when access was refused — the file
+    /// picker opens straight into it.
+    @Published var neteaseCacheHint: String?
+    /// Directory the user has already granted, if any.
+    @Published var neteaseGrantedPath: String?
 
     weak var actions: PanelActions?
 

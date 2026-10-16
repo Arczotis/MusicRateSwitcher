@@ -13,8 +13,29 @@ set -euo pipefail
 name=${SIGN_IDENTITY:-"MusicRateSwitcher Self-Signed"}
 keychain="$HOME/Library/Keychains/login.keychain-db"
 
+# macOS only counts an identity as valid for code signing when the certificate
+# is trusted for that purpose. An untrusted self-signed certificate reports
+# CSSMERR_TP_NOT_TRUSTED, and checks that look for a valid identity then treat
+# the app as unsigned.
+trust_identity() {
+    if security find-identity -v -p codesigning | grep -qF "$name"; then
+        return 0
+    fi
+    local pem status
+    pem=$(mktemp)
+    if ! security find-certificate -c "$name" -p > "$pem" 2>/dev/null; then
+        rm -f "$pem"
+        return 1
+    fi
+    security add-trusted-cert -r trustRoot -p codeSign -k "$keychain" "$pem" >/dev/null 2>&1
+    status=$?
+    rm -f "$pem"
+    return $status
+}
+
 if security find-certificate -c "$name" "$keychain" >/dev/null 2>&1; then
     echo "Signing identity \"$name\" already exists."
+    trust_identity || echo "warning: could not set code-signing trust; mark \"$name\" as Always Trust in Keychain Access." >&2
     exit 0
 fi
 
@@ -41,5 +62,7 @@ passphrase=$(/usr/bin/openssl rand -hex 16)
 /usr/bin/openssl pkcs12 -export -inkey "$work/key.pem" -in "$work/cert.pem" \
     -name "$name" -out "$work/identity.p12" -passout "pass:$passphrase"
 security import "$work/identity.p12" -k "$keychain" -P "$passphrase" -T /usr/bin/codesign >/dev/null
+
+trust_identity || echo "warning: could not set code-signing trust; mark \"$name\" as Always Trust in Keychain Access." >&2
 
 echo "Created signing identity \"$name\"."

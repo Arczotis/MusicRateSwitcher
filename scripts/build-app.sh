@@ -39,4 +39,9 @@ else
     codesign --force --sign - "$app_dir"
 fi
 
+# Print what actually signed the bundle: the designated requirement is what
+# macOS keys privacy grants on, so it must not change between releases.
+echo "signed by: $(codesign -dv --verbose=2 "$app_dir" 2>&1 | sed -n 's/^Authority=//p' | head -1)" >&2
+echo "requirement: $(codesign -dr - "$app_dir" 2>&1 | tail -1)" >&2
+
 echo "$app_dir"

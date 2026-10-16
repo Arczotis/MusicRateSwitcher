@@ -24,12 +24,18 @@ public final class NeteasePlaybackMonitor: SampleRateSource {
     private var lastFormat: SourceAudioFormat?
     private var lastState: SampleRateSourceState?
     private var parseFailures: [URL: Int] = [:]
+    private let cacheAccess: NeteaseCacheAccess
 
-    public init() {}
+    public init(cacheAccess: NeteaseCacheAccess = .shared) {
+        self.cacheAccess = cacheAccess
+    }
 
     deinit { stop() }
 
-    public func start() { startPolling(interval: 0.8) }
+    public func start() {
+        cacheAccess.startAccess()
+        startPolling(interval: 0.8)
+    }
 
     public func startPolling(interval: TimeInterval) {
         queue.async {
@@ -52,7 +58,10 @@ public final class NeteasePlaybackMonitor: SampleRateSource {
         }
     }
 
-    public func refreshNow() { queue.async { self.poll(force: true) } }
+    public func refreshNow() {
+        cacheAccess.startAccess()
+        queue.async { self.poll(force: true) }
+    }
 
     private func poll(force: Bool = false) {
         guard let runningPID = currentPID() else {
@@ -108,10 +117,11 @@ public final class NeteasePlaybackMonitor: SampleRateSource {
             scheduleRetry(for: selected.url, message: "缓存头尚未写入完整")
         } catch where FileAccess.isPermissionDenied(error) {
             parseFailures[selected.url] = nil
-            if lastState != .permissionRequired {
-                Diagnostics.shared.warning("没有读取网易云缓存的权限，请在“系统设置 → 隐私与安全性 → 文件与文件夹”中为 MusicRateSwitcher 打开网易云音乐的数据访问：\(error.localizedDescription)")
+            let directory = selected.url.deletingLastPathComponent()
+            if lastState != .permissionRequired(directory.path) {
+                Diagnostics.shared.warning(permissionMessage(for: directory, error: error))
             }
-            emit(.permissionRequired)
+            emit(.permissionRequired(directory.path))
         } catch {
             scheduleRetry(for: selected.url, message: error.localizedDescription)
         }
@@ -194,6 +204,14 @@ public final class NeteasePlaybackMonitor: SampleRateSource {
         defer { try? handle.close() }
         let data = try handle.read(upToCount: 4 * 1_024 * 1_024) ?? Data()
         return try EncodedAudioParser.parse(data)
+    }
+
+    private func permissionMessage(for directory: URL, error: Error) -> String {
+        let granted = cacheAccess.covers(directory.appendingPathComponent(NeteaseCacheAccess.cacheFolderName))
+        let advice = granted
+            ? "已选择缓存目录，但 macOS 仍然拒绝读取（\(directory.path)）。请在“系统设置 → 隐私与安全性 → 完全磁盘访问权限”中勾选 MusicRateSwitcher，然后重新打开 App"
+            : "macOS 拒绝读取网易云音乐的缓存（\(directory.path)）。其他 App 的容器由系统保护，弹窗授权只在本次运行内有效；请在面板中点“选择目录”授权一次，或把 MusicRateSwitcher 加入“系统设置 → 隐私与安全性 → 完全磁盘访问权限”"
+        return "\(advice)：\(error.localizedDescription)"
     }
 
     private func scheduleRetry(for url: URL, message: String) {
