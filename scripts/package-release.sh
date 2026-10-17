@@ -22,7 +22,7 @@ staging=$(mktemp -d)
 trap 'rm -rf "$build_stage" "$staging"' EXIT
 
 mkdir -p "$dist_dir"
-app=$(OUT_DIR="$build_stage" ./scripts/build-app.sh)
+app=$(OUT_DIR="$build_stage" ./scripts/build-app.sh | tail -1)
 
 rm -f "$dist_dir/$name".{zip,dmg,zip.sha256,dmg.sha256}
 

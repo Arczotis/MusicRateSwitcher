@@ -6,8 +6,9 @@ project_dir=${script_dir:h}
 configuration=${CONFIGURATION:-release}
 
 cd "$project_dir"
-swift build -c "$configuration" --product MusicRateSwitcher
-binary_dir=$(swift build -c "$configuration" --show-bin-path)
+# Build logs go to stderr so stdout carries exactly one thing: the app path.
+swift build -c "$configuration" --product MusicRateSwitcher >&2
+binary_dir=$(swift build -c "$configuration" --show-bin-path 2>/dev/null | tail -1)
 
 # Output goes to a hidden directory by default: an app bundle sitting in a
 # Spotlight-indexed folder gets registered with LaunchServices, and macOS then
