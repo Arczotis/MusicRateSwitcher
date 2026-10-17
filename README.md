@@ -176,12 +176,14 @@ macOS 14.2 及以上使用公开的 Core Audio Process Object API 检查活跃�
 
 ```bash
 ./scripts/run-tests.sh        # 运行自检
-./scripts/build-app.sh        # 生成 dist/MusicRateSwitcher.app
+./scripts/build-app.sh        # 生成 .build/app/MusicRateSwitcher.app
 ./scripts/package-release.sh  # 生成 DMG / ZIP 及 SHA-256
 ./scripts/create-signing-cert.sh  # （首次）生成固定的自签名签名证书
 ```
 
 `build-app.sh` 会优先使用钥匙串中名为 `MusicRateSwitcher Self-Signed` 的签名身份（可用 `./scripts/create-signing-cert.sh` 生成，脚本会顺带把证书设为代码签名受信任），这样每次构建的代码签名身份保持一致，macOS 的隐私授权在升级后依然有效；找不到时回退为 ad-hoc 签名。构建结束会打印实际签名身份与 designated requirement —— 它们一旦变化，用户的授权就会失效。请备份这个证书，换证书签名会让授权再次失效。公开分发的最佳做法仍是 Developer ID 签名并完成 notarization。
+
+`dist/` 里只放发布用的 zip / dmg，不再保留 `.app`：放在 Spotlight 会索引的目录里的 app 包会被 LaunchServices 注册，系统里就会同时出现两个 MusicRateSwitcher（构建产物和已安装的那份）。构建产物落在 `.build/app/`，需要时用 `OUT_DIR=<目录> ./scripts/build-app.sh` 指到别处。
 
 调试构建支持 `--snapshot <目录>`，会用演示数据把控制面板、菜单栏样式和关于窗口渲染为 PNG，README 中的截图即由此生成：
 

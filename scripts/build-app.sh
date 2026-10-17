@@ -9,8 +9,11 @@ cd "$project_dir"
 swift build -c "$configuration" --product MusicRateSwitcher
 binary_dir=$(swift build -c "$configuration" --show-bin-path)
 
-dist_dir="$project_dir/dist"
-app_dir="$dist_dir/MusicRateSwitcher.app"
+# Output goes to a hidden directory by default: an app bundle sitting in a
+# Spotlight-indexed folder gets registered with LaunchServices, and macOS then
+# offers two copies of the app (this build and the installed one).
+out_dir=${OUT_DIR:-"$project_dir/.build/app"}
+app_dir="$out_dir/MusicRateSwitcher.app"
 contents_dir="$app_dir/Contents"
 
 if [[ -d "$app_dir" ]]; then

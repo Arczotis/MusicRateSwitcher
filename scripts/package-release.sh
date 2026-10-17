@@ -2,6 +2,11 @@
 # Builds the app and produces distributable archives in dist/:
 #   MusicRateSwitcher-v<version>-macOS.zip   (+ .sha256)
 #   MusicRateSwitcher-v<version>-macOS.dmg   (+ .sha256, drag-to-Applications layout)
+#
+# The .app is built and archived from a temporary directory on purpose: an app
+# bundle left inside dist/ is registered with LaunchServices and indexed by
+# Spotlight, so macOS ends up offering two copies of the app — that build and
+# the installed one.
 set -euo pipefail
 
 script_dir=${0:A:h}
@@ -12,15 +17,17 @@ version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resourc
 name="MusicRateSwitcher-v${version}-macOS"
 dist_dir="$project_dir/dist"
 
-./scripts/build-app.sh >/dev/null
-app="$dist_dir/MusicRateSwitcher.app"
+build_stage=$(mktemp -d)
+staging=$(mktemp -d)
+trap 'rm -rf "$build_stage" "$staging"' EXIT
+
+mkdir -p "$dist_dir"
+app=$(OUT_DIR="$build_stage" ./scripts/build-app.sh)
 
 rm -f "$dist_dir/$name".{zip,dmg,zip.sha256,dmg.sha256}
 
 ditto -c -k --sequesterRsrc --keepParent "$app" "$dist_dir/$name.zip"
 
-staging=$(mktemp -d)
-trap 'rm -rf "$staging"' EXIT
 cp -R "$app" "$staging/"
 ln -s /Applications "$staging/Applications"
 hdiutil create -quiet -volname "MusicRateSwitcher $version" -srcfolder "$staging" \

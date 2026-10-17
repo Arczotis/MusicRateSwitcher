@@ -174,12 +174,14 @@ Requires macOS 13 or later and Xcode or the Apple Command Line Tools.
 
 ```bash
 ./scripts/run-tests.sh        # self-tests
-./scripts/build-app.sh        # builds dist/MusicRateSwitcher.app
+./scripts/build-app.sh        # builds .build/app/MusicRateSwitcher.app
 ./scripts/package-release.sh  # builds the DMG / ZIP and SHA-256 files
 ./scripts/create-signing-cert.sh  # (once) creates the fixed self-signed signing identity
 ```
 
 `build-app.sh` signs with the `MusicRateSwitcher Self-Signed` identity from your keychain when it exists (create it with `./scripts/create-signing-cert.sh`), which keeps the code-signing identity stable across builds so macOS privacy grants survive updates; otherwise it falls back to ad-hoc signing. Back the certificate up — signing with a different one invalidates users' grants again. Developer ID signing plus notarization remains the best option for public distribution.
+
+`dist/` holds only the release archives, never an `.app`: an app bundle in a Spotlight-indexed folder is registered with LaunchServices, and macOS then lists two copies of MusicRateSwitcher — the build and the installed one. Builds land in `.build/app/`; pass `OUT_DIR=<dir>` to `build-app.sh` to put them elsewhere.
 
 Debug builds accept `--snapshot <dir>`, which renders the control panel, menu bar styles, and about window with demo data to PNG — the README screenshots come from this:
 
